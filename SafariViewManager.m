@@ -23,6 +23,16 @@ RCT_EXPORT_METHOD(show:(NSDictionary *)args callback:(RCTResponseSenderBlock)cal
         RCTLogError(@"[SafariView] You must specify a url.");
         return;
     }
+    
+    
+    if (self.safariView) {
+        RCTLogInfo(@"[SafariView] Already open, attempting to hide first");
+        [self.safariView dismissViewControllerAnimated: NO completion: ^() {
+            self.safariView = nil;
+            [self show:args callback: callback];
+        }];
+        return;
+    }
 
     // Initialize the Safari View
     self.safariView = [[SFSafariViewController alloc] initWithURL:[NSURL URLWithString:args[@"url"]] entersReaderIfAvailable:args[@"readerMode"]];
@@ -36,7 +46,7 @@ RCT_EXPORT_METHOD(show:(NSDictionary *)args callback:(RCTResponseSenderBlock)cal
 
     // Display the Safari View
     UIViewController *ctrl = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
-    [ctrl presentViewController:self.safariView animated:YES completion:nil];
+    [ctrl presentViewController:self.safariView animated:YES  completion:nil];
 
     [self.bridge.eventDispatcher sendDeviceEventWithName:@"SafariViewOnShow" body:nil];
 }
@@ -62,6 +72,7 @@ RCT_EXPORT_METHOD(dismiss)
     NSLog(@"[SafariView] SafariView dismissed.");
 
     [self.bridge.eventDispatcher sendAppEventWithName:@"SafariViewOnDismiss" body:nil];
+    self.safariView = nil;
 }
 
 @end
